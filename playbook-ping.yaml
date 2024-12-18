@@ -1,0 +1,15 @@
+-
+  name: 'Test connection to linux targets'
+  hosts: Linux
+  tasks:
+    - name: 'Ping test'
+      ping:
+-
+  name: 'Test connection to win targets'
+  hosts: ungrouped
+  tasks:
+    - name: 'Ping test'
+      win_ping:
+
+
+
