@@ -1,0 +1,177 @@
+- name: Запуск iperf3 с разным количеством потоков
+  hosts: ubuntu1  # Запускаем сервер iperf3 на ubuntu1
+  vars:
+    iperf_duration: 5  # Время выполнения команд iperf3
+  tasks:
+    - name: Убедиться, что iperf3 установлен
+      apt:
+        name: iperf3
+        state: present
+      # Устанавливаем iperf3, если он еще не установлен
+
+    - name: Запустить iperf3 сервер на порту 5201
+      command: iperf3 -s -p 5201 -D
+      async: 10
+      poll: 0
+      # Запускаем сервер iperf3 на порту 5201 в фоновом режиме
+
+    - name: Запустить iperf3 сервер на порту 5202
+      command: iperf3 -s -p 5202 -D
+      async: 10
+      poll: 0
+      # Запускаем сервер iperf3 на порту 5202 в фоновом режиме
+
+    - name: Запустить iperf3 сервер на порту 5203
+      command: iperf3 -s -p 5203 -D
+      async: 10
+      poll: 0
+      # Запускаем сервер iperf3 на порту 5203 в фоновом режиме
+
+    - name: Запустить iperf3 сервер на порту 5204
+      command: iperf3 -s -p 5204 -D
+      async: 10
+      poll: 0
+      # Запускаем сервер iperf3 на порту 5204 в фоновом режиме
+
+    - name: Запустить iperf3 сервер на порту 5205
+      command: iperf3 -s -p 5205 -D
+      async: 10
+      poll: 0
+      # Запускаем сервер iperf3 на порту 5205 в фоновом режиме
+
+- name: Выполнить iperf3 с разным количеством потоков
+  hosts: ubuntu2  # Клиент iperf3 на ubuntu2
+  vars:
+    iperf_duration: 5  # Время выполнения команд iperf3
+  tasks:
+    - name: Подождать, пока сервер запустится
+      wait_for:
+        host: "{{ hostvars['ubuntu1']['ansible_host'] }}"  # Используем IP из инвентарного файла
+        port: 5201
+        timeout: 10
+      # Ждем, пока сервер iperf3 на порту 5201 не станет доступен
+
+    - name: Выполнить iperf3 с 1 потоком (1-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 1 -t "{{ iperf_duration }}"
+      register: iperf3_result_1_1
+      # Запускаем iperf3 клиент с 1 потоком на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_1_1.stdout | regex_findall('.*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 1 потоком (2-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 1 -t "{{ iperf_duration }}"
+      register: iperf3_result_1_2
+      # Запускаем iperf3 клиент с 1 потоком на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_1_2.stdout | regex_findall('.*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 1 потоком (3-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 1 -t "{{ iperf_duration }}"
+      register: iperf3_result_1_3
+      # Запускаем iperf3 клиент с 1 потоком на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_1_3.stdout | regex_findall('.*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 1 потоком
+      set_fact:
+        avg_speed_1: "{{ ((iperf3_result_1_1.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_1_2.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_1_3.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float)) / 3 }}"
+      # Подсчитываем среднюю скорость передачи данных для 1 потока
+
+    - debug:
+        msg: "ПОКА НЕ ГОТОВО Средняя скорость передачи с 1 потоком: {{ avg_speed_1 | float | round(1) }} Gbits/sec"
+      # Выводим среднюю скорость передачи данных для 1 потока
+
+    - name: Выполнить iperf3 с 2 потоками (1-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 2 -t "{{ iperf_duration }}"
+      register: iperf3_result_2_1
+      # Запускаем iperf3 клиент с 2 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_2_1.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 2 потоками (2-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 2 -t "{{ iperf_duration }}"
+      register: iperf3_result_2_2
+      # Запускаем iperf3 клиент с 2 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_2_2.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 2 потоками (3-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 2 -t "{{ iperf_duration }}"
+      register: iperf3_result_2_3
+      # Запускаем iperf3 клиент с 2 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_2_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 2 потоками
+      set_fact:
+        avg_speed_2: "{{ ((iperf3_result_2_1.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_2_2.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_2_3.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float)) / 3 }}"
+      # Подсчитываем среднюю скорость передачи данных для 2 потоков
+
+    - debug:
+        msg: "ПОКА НЕ ГОТОВО Средняя скорость передачи с 2 потоками: {{ avg_speed_2 | float | round(1) }} Gbits/sec"
+      # Выводим среднюю скорость передачи данных для 2 потоков
+
+    - name: Выполнить iperf3 с 3 потоками (1-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_1
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_1.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 3 потоками (2-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_2
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_2.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 3 потоками (3-й прогон)
+      command: iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_3
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 3 потоками
+      set_fact:
+        avg_speed_3: "{{ ((iperf3_result_3_1.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_3_2.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float) + (iperf3_result_3_3.stdout | regex_search('([0-9.]+) Gbits/sec') | regex_replace('[^0-9.]', '') | float)) / 3 }}"
+      # Подсчитываем среднюю скорость передачи данных для 3 потоков
+
+    - debug:
+        msg: "ПОКА НЕ ГОТОВО Средняя скорость передачи с 3 потоками: {{ avg_speed_3 | float | round(1) }} Gbits/sec"
+      # Выводим среднюю скорость передачи данных для 3 потоков
+
+    - name: Выполнить iperf3 с 5 сессий
+      shell: |
+        iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5201 -P 1 -t "{{ iperf_duration }}" &
+        iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5202 -P 1 -t "{{ iperf_duration }}" &
+        iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5203 -P 1 -t "{{ iperf_duration }}" &
+        iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5204 -P 1 -t "{{ iperf_duration }}" &
+        iperf3 -c "{{ hostvars['ubuntu1']['ansible_host'] }}" -p 5205 -P 1 -t "{{ iperf_duration }}"
+        wait
+      async: 10
+      poll: 0
+      register: iperf3_result_5_sessions
+      # Запускаем 5 сессий iperf3 одновременно на разных портах
+
+    - name: Подождать завершения всех сессий
+      async_status:
+        jid: "{{ iperf3_result_5_sessions.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 15
+      delay: 1
+      # Ждем завершения всех сессий iperf3
+
+    - debug:
+        msg: "{{ job_result.stdout | regex_findall('.*sender.*') }}"
+      # Выводим результаты всех сессий
