@@ -71,15 +71,15 @@
 
     - name: Подсчитать среднюю скорость передачи с 1 потоком (Gbits/sec)
       set_fact:
-        avg_speed_1_gbits: "{{ ((iperf3_result_1_1.stdout | regex_search('([0-9.]+) Gbits/sec.*sender') | regex_replace('[^0-9.]', '') | float) +
-                                (iperf3_result_1_2.stdout | regex_search('([0-9.]+) Gbits/sec.*sender') | regex_replace('[^0-9.]', '') | float) +
-                                (iperf3_result_1_3.stdout | regex_search('([0-9.]+) Gbits/sec.*sender') | regex_replace('[^0-9.]', '') | float)) / 3 }}"
+        avg_speed_1_gbits: "{{ ((iperf3_result_1_1.stdout | regex_search('([0-9.]+) [KMGTP]?bits/sec.*sender') | regex_replace('[^0-9.]', '') | float) +
+                                (iperf3_result_1_2.stdout | regex_search('([0-9.]+) [KMGTP]?bits/sec.*sender') | regex_replace('[^0-9.]', '') | float) +
+                                (iperf3_result_1_3.stdout | regex_search('([0-9.]+) [KMGTP]?bits/sec.*sender') | regex_replace('[^0-9.]', '') | float)) / 3 }}"
 
     - name: Подсчитать среднее переданное количество данных (GBytes)
       set_fact:
-        avg_transfer_1_gbytes: "{{ ((iperf3_result_1_1.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float) +
-                                     (iperf3_result_1_2.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float) +
-                                     (iperf3_result_1_3.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float)) / 3 }}"
+        avg_transfer_1_gbytes: "{{ ((iperf3_result_1_1.stdout | regex_search('([0-9.]+) [KMGTP]?Bytes.*sender') | regex_replace(' GBytes.*', '') | float) +
+                                     (iperf3_result_1_2.stdout | regex_search('([0-9.]+) [KMGTP]?Bytes.*sender') | regex_replace(' GBytes.*', '') | float) +
+                                     (iperf3_result_1_3.stdout | regex_search('([0-9.]+) [KMGTP]?Bytes.*sender') | regex_replace(' GBytes.*', '') | float)) / 3 }}"
 
     - name: Подсчитать среднее количество ретрансляций с 1 потоком
       set_fact:
@@ -89,9 +89,10 @@
 
     - debug:
         msg:
-          - "Средняя скорость передачи с 1 потоком: {{ avg_speed_1_gbits | float | round(1) }} Gbits/sec"
-          - "Среднее переданное количество данных с 1 потоком: {{ avg_transfer_1_gbytes | float | round(1) }} GBytes"
+          - "Средняя скорость передачи с 1 потоком: {{ avg_speed_1_gbits | float | round(1) }}"
+          - "Среднее переданное количество данных с 1 потоком: {{ avg_transfer_1_gbytes | float | round(1) }}"
           - "Среднее количество ретрансляций с 1 потоком: {{ avg_retransmissions }}"
+#####################################################################################################################
 
 
     - name: Выполнить iperf3 с 2 потоками (1-й прогон)
@@ -118,19 +119,190 @@
         msg: "{{ iperf3_result_2_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
       # Выводим результаты третьего прогона
 
-    - name: Подсчитать среднюю скорость передачи с 2 потоками (Gbits/sec)
+    - name: Подсчитать среднюю скорость передачи с 2 потоками
       set_fact:
-        avg_speed_2_gbits: "{{ ((iperf3_result_2_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) Gbits/sec', '\\1') | first | float) +
-                                (iperf3_result_2_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) Gbits/sec', '\\1') | first | float) +
-                                (iperf3_result_2_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) Gbits/sec', '\\1') | first | float)) / 3 }}"
+        avg_speed_2_gbits: "{{ ((iperf3_result_2_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_2_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_2_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float)) / 3 }}"
 
-    - name: Подсчитать среднее переданное количество данных с 2 потоков (GBytes)
+
+    - name: Подсчитать среднее переданное количество данных с 2 потоков
       set_fact:
-        avg_transfer_2_gbytes: "{{ ((iperf3_result_2_1.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float) +
-                                     (iperf3_result_2_2.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float) +
-                                     (iperf3_result_2_3.stdout | regex_search('([0-9.]+) GBytes.*sender') | regex_replace(' GBytes.*', '') | float)) / 3 }}"
+        avg_transfer_2_gbytes: "{{ ((iperf3_result_2_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_2_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_2_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее количество потерянных пакетов по 2 потокам
+      set_fact:
+        avg_retri_2: "{{ ((iperf3_result_2_1.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_2_2.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_2_3.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int)) /3 }}"
 
 
     - debug:
         msg:
-          - "Средняя скорость передачи с 2 потоками: {{ avg_speed_2_gbits | float | round(1) }} Gbits/sec"
+          - "Средняя скорость передачи с 2 потоками: {{ avg_speed_2_gbits | float | round(1) }}"
+          - "Средний объем переданных данных c 2 потоков: {{ avg_transfer_2_gbytes | float | round(1) }}"
+          - "Среднее количество ретрансляций c 2 потоков: {{ avg_retri_2 | float }}"
+#####################################################################################################################################
+
+
+    - name: Выполнить iperf3 с 3 потоками (1-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_1
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_1.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 3 потоками (2-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_2
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_2.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 3 потоками (3-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 3 -t "{{ iperf_duration }}"
+      register: iperf3_result_3_3
+      # Запускаем iperf3 клиент с 3 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_3_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 3 потоками
+      set_fact:
+        avg_speed_3_gbits: "{{ ((iperf3_result_3_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_3_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_3_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее переданное количество данных с 3 потоков
+      set_fact:
+        avg_transfer_3_gbytes: "{{ ((iperf3_result_3_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_3_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_3_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее количество потерянных пакетов по 3 потокам
+      set_fact:
+        avg_retri_3: "{{ ((iperf3_result_3_1.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_3_2.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_3_3.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int)) /3 }}"
+
+
+    - debug:
+        msg:
+          - "Средняя скорость передачи с 3 потоками: {{ avg_speed_3_gbits | float | round(1) }}"
+          - "Средний объем переданных данных c 3 потоков: {{ avg_transfer_3_gbytes | float | round(1) }}"
+          - "Среднее количество ретрансляций c 3 потоков: {{ avg_retri_3 | float }}"
+###############################################################################################
+
+
+    - name: Выполнить iperf3 с 5 потоками (1-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 5 -t "{{ iperf_duration }}"
+      register: iperf3_result_5_1
+      # Запускаем iperf3 клиент с 2 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_5_1.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 5 потоками (2-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 5 -t "{{ iperf_duration }}"
+      register: iperf3_result_5_2
+      # Запускаем iperf3 клиент с 5 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_5_2.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 5 потоками (3-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 5 -t "{{ iperf_duration }}"
+      register: iperf3_result_5_3
+      # Запускаем iperf3 клиент с 5 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_5_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 5 потоками
+      set_fact:
+        avg_speed_5_gbits: "{{ ((iperf3_result_5_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_5_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_5_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее переданное количество данных с 5 потоков
+      set_fact:
+        avg_transfer_5_gbytes: "{{ ((iperf3_result_5_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_5_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_5_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее количество потерянных пакетов по 5 потокам
+      set_fact:
+        avg_retri_5: "{{ ((iperf3_result_5_1.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_5_2.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_5_3.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int)) /3 }}"
+
+
+    - debug:
+        msg:
+          - "Средняя скорость передачи с 5 потоками: {{ avg_speed_5_gbits | float | round(1) }}"
+          - "Средний объем переданных данных c 5 потоков: {{ avg_transfer_5_gbytes | float | round(1) }}"
+          - "Среднее количество ретрансляций c 5 потоков: {{ avg_retri_5 | float }}"
+####################################################################################################################
+
+
+
+    - name: Выполнить iperf3 с 10 потоками (1-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 10 -t "{{ iperf_duration }}"
+      register: iperf3_result_10_1
+      # Запускаем iperf3 клиент с 10 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_10_1.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты первого прогона
+
+    - name: Выполнить iperf3 с 10 потоками (2-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 10 -t "{{ iperf_duration }}"
+      register: iperf3_result_10_2
+      # Запускаем iperf3 клиент с 10 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_10_2.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты второго прогона
+
+    - name: Выполнить iperf3 с 10 потоками (3-й прогон)
+      command: iperf3 -c "{{ hostvars['host1']['ansible_host'] }}" -p 5201 -P 10 -t "{{ iperf_duration }}"
+      register: iperf3_result_10_3
+      # Запускаем iperf3 клиент с 10 потоками на порту 5201
+    - debug:
+        msg: "{{ iperf3_result_10_3.stdout | regex_findall('.*\\[SUM\\].*sender.*') }}"
+      # Выводим результаты третьего прогона
+
+    - name: Подсчитать среднюю скорость передачи с 10 потоками
+      set_fact:
+        avg_speed_10_gbits: "{{ ((iperf3_result_10_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_10_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float) +
+                                (iperf3_result_10_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?bits/sec', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее переданное количество данных с 10 потоков
+      set_fact:
+        avg_transfer_10_gbytes: "{{ ((iperf3_result_10_1.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_10_2.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float) +
+                                    (iperf3_result_10_3.stdout | regex_search('.*\\[SUM\\].*sender.*') | regex_search('([0-9\\.]+) [KMGTP]?Bytes', '\\1') | first | float)) / 3 }}"
+
+
+    - name: Подсчитать среднее количество потерянных пакетов по 10 потокам
+      set_fact:
+        avg_retri_10: "{{ ((iperf3_result_10_1.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_10_2.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int) +
+                          (iperf3_result_10_3.stdout | regex_search('.*\\[SUM\\].*([0-9]+)\\s+sender', '\\1') | first | default(0) | int)) /3 }}"
+
+
+    - debug:
+        msg:
+          - "Средняя скорость передачи с 10 потоками: {{ avg_speed_10_gbits | float | round(1) }}"
+          - "Средний объем переданных данных c 10 потоков: {{ avg_transfer_10_gbytes | float | round(1) }}"
+          - "Среднее количество ретрансляций c 10 потоков: {{ avg_retri_10 | float }}"
+##################################################################################################################
